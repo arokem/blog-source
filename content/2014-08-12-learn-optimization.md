@@ -17,58 +17,22 @@ This tutorial assumes that you know some python. Specifically, I am going to ass
 ## Why model? 
 
 Let's consider a data-set taken from an experiment in visual neuroscience. In this experiment, participants viewed a stimulus that contained a grating. In each trial two gratings were displayed. To show these stimuli, let's import some stuff from IPython: 
-
-
-{% highlight python %}
-
-from IPython.display import display, Image
-
-
-{% endhighlight %}
-
+.. code-block:: pythonfrom IPython.display import display, Image
 
 The first grating that was shown was surrounded by another grating: 
-
-
-{% highlight python %}
-
-display(Image(filename='images/surrounded.png'))
-
-
-{% endhighlight %}
-
+.. code-block:: pythondisplay(Image(filename='images/surrounded.png'))
 ![png]({{ site.url }}/assets/images/2014-08-12-learn-optimization/2014-08-12-learn-optimization_5_0.png)
 The second grating was not surrounded: 
-
-
-{% highlight python %}
-
-display(Image(filename='images/comparison.png'))
-
-
-{% endhighlight %}
-
+.. code-block:: pythondisplay(Image(filename='images/comparison.png'))
 ![png]({{ site.url }}/assets/images/2014-08-12-learn-optimization/2014-08-12-learn-optimization_7_0.png)
 Participants had to say which interval had higher *contrast*. That is, in which interval the amplitude of the modulation between the dark stripes and the light stripes in the grating was larger. This is a way for us to measure the effects of the presencee of a surround on contrast perception. For example, it is well known that the relative orientation of the surround affects the degree to which the surround reduces the perceived contrast of the central patch (e.g., see [recent work from Kosovicheva et al.](http://www.frontiersin.org/Behavioral_Neuroscience/10.3389/fnbeh.2012.00061/abstract) using a similar experimental paradigm). 
 
 Let's look at some experimental data. We have two files from one subject in csv files, `ortho.csv` and `para.csv`. As their names suggest they come from two different runs of the experiment: one in which the surrounding stimulus was oriented in the parallel orientation relative to the center stimulus (also sometimes called 'co-linear') and one in which the surrounding stimulus was orthogonal to the center stimulus. The files contain three columns: `contrast1` is the contrast in the first interval, `contrast2` is the contrast in the second interval and `answer` is what the participant thought had higher contrast. We will use the function `mlab.csv2rec` to read the data into a `numpy recarray`: 
-
-
-{% highlight python %}
-
-ortho = mlab.csv2rec('data/ortho.csv') 
+.. code-block:: pythonortho = mlab.csv2rec('data/ortho.csv') 
 para = mlab.csv2rec('data/para.csv')
 
-
-{% endhighlight %}
-
-
 If you take a look at the data you will see that the contrast in the second interval was always 0.3 (30% contrast), so we can safely ignore that column altogether and only look at the contrast in the first interval. Let's take a look at the data. First, we are just going to plot the raw data as it is. We will consider the contrasts as our independent variable, and the responses as the dependent variables.
-
-
-{% highlight python %}
-
-fig, ax = plt.subplots(1)
+.. code-block:: pythonfig, ax = plt.subplots(1)
 # We apply a small vertical jitter to each point, just to show that there are multiple points at each location:
 ax.plot(ortho['contrast1'], ortho['answer'] + np.random.randn(len(ortho)) * 0.02 , '*')
 ax.plot(para['contrast1'], para['answer'] + np.random.randn(len(para)) * 0.02 , '+')
@@ -77,17 +41,9 @@ ax.set_xlabel('Contrast 1')
 ax.set_ylabel('Which stimulus had higher contrast? (1 or 2)')
 
 fig.set_size_inches([8,8])
-
-
-{% endhighlight %}
-
 ![png]({{ site.url }}/assets/images/2014-08-12-learn-optimization/2014-08-12-learn-optimization_11_0.png)
 There seems to be a trend in the data: the larger the contrast in the first interval, the more likely the subject was to press the '1' button. That's a reasonable thing to do, but it's hard to see and hard to quantify in this form. Instead, we will transform this data into a plot in which the independent variable is the contrast in interval 1 and the dependent variable is the proportion of trials for which the subject pressed the '1' key for each contrast. Let's define a function that will do that for us: 
-
-
-{% highlight python %}
-
-def transform_data(data): 
+.. code-block:: pythondef transform_data(data): 
     """ 
     Function that takes experimental data and gives us the dependent/independent variables for analysis
 
@@ -119,26 +75,10 @@ def transform_data(data):
     return x,y,n
             
 
-
-{% endhighlight %}
-
-
-
-
-{% highlight python %}
-
-x_ortho, y_ortho, n_ortho = transform_data(ortho)
+.. code-block:: pythonx_ortho, y_ortho, n_ortho = transform_data(ortho)
 x_para, y_para, n_para = transform_data(para)    
 
-
-{% endhighlight %}
-
-
-
-
-{% highlight python %}
-
-fig, ax = plt.subplots(1)
+.. code-block:: pythonfig, ax = plt.subplots(1)
 # To plot each point with size proportional to the number of trials in that condition:
 for x,y,n in zip(x_ortho, y_ortho, n_ortho):
     ax.plot(x, y, 'bo', markersize=n)
@@ -152,10 +92,6 @@ ax.set_ylim([-0.1, 1.1])
 ax.set_xlim([-0.1, 1.1])
 ax.grid('on')
 fig.set_size_inches([8,8])
-
-
-{% endhighlight %}
-
 ![png]({{ site.url }}/assets/images/2014-08-12-learn-optimization/2014-08-12-learn-optimization_15_0.png)
 Obviously there is a systematic relationship between the contrast and the chances that this subject thought that the first interval had the higher contrast. For example, when the contrast was much higher in interval 1 (e.g. 0.9), this person never said that the second interval had higher contrast. Likewise, when the contrast was very low, this person almost never said that the contrast in interval 1 had been higher. In the middle, there seems to be a monotonic relationship between the variables. Also, notive that the two sets of data (orthogonal and parallel) seem to be slightly different. 
 
@@ -190,23 +126,11 @@ Let's fit a linear model to our data. In our case, a linear model would simply b
 $$y = \beta_0 + \beta_1 x$$
 
 These kind of equations (*polynomials*) can be solved using `np.polyfit`:
-
-
-{% highlight python %}
-
-# Note that the coefficients go in the other direction than my equation above (the constant comes last):
+.. code-block:: python# Note that the coefficients go in the other direction than my equation above (the constant comes last):
 beta1_ortho, beta0_ortho = np.polyfit(x_ortho, y_ortho, 1)
 beta1_para, beta0_para = np.polyfit(x_para, y_para, 1)
 
-
-{% endhighlight %}
-
-
-
-
-{% highlight python %}
-
-# Let's show the data and the model fit, 
+.. code-block:: python# Let's show the data and the model fit, 
 # polyval evaluates the model at an arbitrary set of x values:
 x = np.linspace(np.min([x_ortho, x_para]), np.max([x_ortho, x_para]), 100)
 fig, ax = plt.subplots(1)
@@ -220,23 +144,11 @@ ax.set_ylim([-0.1, 1.1])
 ax.set_xlim([-0.1, 1.1])
 ax.grid('on')
 fig.set_size_inches([8,8])
-
-
-{% endhighlight %}
-
 ![png]({{ site.url }}/assets/images/2014-08-12-learn-optimization/2014-08-12-learn-optimization_20_0.png)
-
-
-{% highlight python %}
-
-#Let's quantify the fit by calculating the sum of squared errors relative to the actual data: 
+.. code-block:: python#Let's quantify the fit by calculating the sum of squared errors relative to the actual data: 
 SSE_ortho = np.sum((y_ortho - np.polyval([beta1_ortho, beta0_ortho], x_ortho))**2)
 SSE_para = np.sum((y_para - np.polyval([beta1_para, beta0_para], x_para))**2)
 print(SSE_ortho + SSE_para)
-
-
-{% endhighlight %}
-
 	0.435568123024
 In this case, to derive the PSE, we need to do a little bit of algebra. We set y=0.5 (that's the definition of the PSE) and solve for x:
 
@@ -245,16 +157,8 @@ $$0.5 = \beta_0 + \beta_1 x$$
 $$ \Rightarrow 0.5 - \beta_0 = \beta_1 x$$ 
 
 $$ \Rightarrow x = \frac{0.5- \beta_0}{\beta1}$$
-
-
-{% highlight python %}
-
-print('PSE for the orthogonal condition is:%s'%((0.5 - beta0_ortho)/beta1_ortho))
+.. code-block:: pythonprint('PSE for the orthogonal condition is:%s'%((0.5 - beta0_ortho)/beta1_ortho))
 print('PSE for the parallel condition is:%s'%((0.5 - beta0_para)/beta1_para))
-
-
-{% endhighlight %}
-
 	PSE for the orthogonal condition is:0.42841372023
 PSE for the parallel condition is:0.559650372242
 OK - this model seems to capture some aspects of the data rather well. For one, it is monotonically increasing. And the SSE doesn't seem too bad (though that's hard to assess just by looking at this number). This model tells us that the PSE is at approximately 0.43 for orthogonal condition and approximately 0.56 for the parallel condition. That is, the contrast in the first interval has to be higher than the contrast in the second interval to appear exactly the same. By how much? For the orthogonal condition it's about 13% and for the parallel condition it's about 26% (considering that the comparison contrast is always 30%). This makes sense: more suppression for the parallel relative to the orthogonal condition. But there are a few problems with this model: It seems to miss a lot of the points. That could be because the data is very noisy, but we can see that the model systematically overshoot the fit for high values of x and systematically undershoots for low values of x. This indicates that another model might be better for this data. Another problem is that it seems to produce non-sensical values for some conditions. For example, it sometimes predicts values larger than 1.0 for large contrasts and values smaller than 0.0 for small contrasts. These values are meaningless, because proportion of responses can never be outside the range 0-1. We need to find a different model.   
@@ -272,11 +176,7 @@ To perform optimization, we need to define the functional form of our model. For
 $$y(x) = \frac{1}{2}[1 + erf(\frac{x-\mu}{\sigma \sqrt{2} })]$$, 
 
 where $$erf$$ is the so-called 'error function', implemented in `scipy.special`
-
-
-{% highlight python %}
-
-from scipy.special import erf
+.. code-block:: pythonfrom scipy.special import erf
 def cumgauss(x, mu, sigma):
     """
     The cumulative Gaussian at x, for the distribution with mean mu and
@@ -305,18 +205,10 @@ def cumgauss(x, mu, sigma):
     """
     return 0.5 * (1 + erf((x-mu)/(np.sqrt(2)*sigma)))
 
-
-{% endhighlight %}
-
-
 The doc-string specifies one reason that we might want to use this function for this kind of data: one of the parameters of the function (mu) is simply the definition of the PSE. So, if we find this parameter, we already have the PSE in hand, without having to do any extra algebra. 
 
 Let's plot a few exemplars of this function, just to get a feel for them:
-
-
-{% highlight python %}
-
-fig, ax = plt.subplots(1)
+.. code-block:: pythonfig, ax = plt.subplots(1)
 ax.plot(x, cumgauss(x, 0.5, 0.25), label=r'$\mu=0, \sigma=0.25$')
 ax.plot(x, cumgauss(x, 0.5, 0.5), label=r'$\mu=0, \sigma=0.5$')
 ax.plot(x, cumgauss(x, 0.5, 0.75), label=r'$\mu=0, \sigma=0.75$')
@@ -327,20 +219,12 @@ ax.set_xlim([-0.1, 1.1])
 ax.grid('on')
 fig.set_size_inches([8,8])
 plt.legend(loc='lower right')
-
-
-{% endhighlight %}
-
 	<matplotlib.legend.Legend at 0x105d68050>![png]({{ site.url }}/assets/images/2014-08-12-learn-optimization/2014-08-12-learn-optimization_28_1.png)
 As you can see, these are monotonically increasing functions. For different values of $$\mu$$, the function moves left or right. As it is derived from the Gaussian function, it asymptotes at 0 and 1 at $$-\infty$$ and $$+\infty$$ respectively, and the rate at which it approaches these asymptotes on either side is determined by $$\sigma$$. 
 ## Step 2 : define an error function
 
 The next step in the optimization procedure is to define an error-function, which can take this function, a particular set of data and a particular set of parameters and calculates the errors in fitting the function, relative to the data, given a particular set of parameters. These errors are also sometimes referred to as the *marginals* of the fitting proedure. In our optimization procedure, we will aim to minimize the sum of the squares of these marginals. If you want to optimize another cost-function (for example, sometimes you might want to minimize the *sum of the absolute error*, instead of the SSE), this is where you would implement this variation
-
-
-{% highlight python %}
-
-def err_func(params, x, y, func):
+.. code-block:: pythondef err_func(params, x, y, func):
         """
         Error function for fitting a function
         
@@ -364,37 +248,21 @@ def err_func(params, x, y, func):
         """
         return y - func(x, *params)
 
-
-{% endhighlight %}
-
-
 Notice that we are passing a function as an input to this function. This might be a pattern that you have never seen before, but when you think about it, there's nothing special about a function that doesn't allow us to pass it around as an object (well, that's not entirely true, functions are special, but bear with me). Note also that we have implemented this function to take *any* function as input and the `params` can be any tuple of parameters with any length. This will allow us to reuse this function later on for other models with a different number of parameters. 
 ## Step 3 : optimize!
 
 We import the `scipy.optimize` module and deploy `leastsq`: 
-
-
-{% highlight python %}
-
-import scipy.optimize as opt
+.. code-block:: pythonimport scipy.optimize as opt
 # Let's guess the inital conditions: 
 initial = 0,0.5
 # We get the params, and throw away the second output of leastsq:
 params_ortho, _ = opt.leastsq(err_func, initial, args=(x_ortho, y_ortho, cumgauss))
 params_para, _ = opt.leastsq(err_func, initial, args=(x_para, y_para, cumgauss))
 
-
-{% endhighlight %}
-
-
 ## Step 4 : evaluate
 
 Let's compare this to the data: 
-
-
-{% highlight python %}
-
-plot(x, cumgauss(x, params_ortho[0], params_ortho[1]))
+.. code-block:: pythonplot(x, cumgauss(x, params_ortho[0], params_ortho[1]))
 plot(x, cumgauss(x, params_para[0], params_para[1]))
 plot(x_ortho, y_ortho, 'bo')
 plot(x_para, y_para, 'go')
@@ -402,44 +270,20 @@ ax.set_ylim([-0.1, 1.1])
 ax.set_xlim([-0.1, 1.1])
 ax.grid('on')
 fig.set_size_inches([8,8])
-
-
-{% endhighlight %}
-
 ![png]({{ site.url }}/assets/images/2014-08-12-learn-optimization/2014-08-12-learn-optimization_36_0.png)
-
-
-{% highlight python %}
-
-SSE_ortho = np.sum((y_ortho - cumgauss(x_ortho, *params_ortho))**2)
+.. code-block:: pythonSSE_ortho = np.sum((y_ortho - cumgauss(x_ortho, *params_ortho))**2)
 SSE_para = np.sum((y_para - cumgauss(x_para, *params_para))**2)
 print(SSE_ortho + SSE_para)
-
-
-{% endhighlight %}
-
 	0.101687231561
 ## Step 5 : interpert
 
 In this case, one of the parameters is simply the PSE:
-
-
-{% highlight python %}
-
-print('PSE for the orthogonal condition is:%s'%params_ortho[0])
+.. code-block:: pythonprint('PSE for the orthogonal condition is:%s'%params_ortho[0])
 print('PSE for the parallel condition is:%s'%params_para[0])
-
-
-{% endhighlight %}
-
 	PSE for the orthogonal condition is:0.464386434318
 PSE for the parallel condition is:0.574567347471
 Notice that we have managed to reduce the sum-of-squared error substantially relative to the linear model presented above, but it's still not perfect. How about trying a more complicated model, with more parameters. Another function that is often used to fit psychometric data is the Weibull cumulative distribution function, named after the great Swedish mathematician and engineer [Waloddi Weibull](http://en.wikipedia.org/wiki/Waloddi_Weibull)
-
-
-{% highlight python %}
-
-def weibull(x,threshx,slope,guess,flake):
+.. code-block:: pythondef weibull(x,threshx,slope,guess,flake):
     """ 
     The Weibull cumulative distribution function
 
@@ -465,15 +309,7 @@ def weibull(x,threshx,slope,guess,flake):
     k = (-np.log((1 - threshy) / (1 - guess))) ** (1 / slope)
     return (flake - (flake - guess) * np.exp(-(k * x / threshx) ** slope))
 
-
-{% endhighlight %}
-
-
-
-
-{% highlight python %}
-
-fig, ax = plt.subplots(1)
+.. code-block:: pythonfig, ax = plt.subplots(1)
 ax.plot(x, weibull(x, 0.5, 3.5, 0.5, 0.05), label='threshx=0.5, slope=3.5, guess=0.5, flake=0.05')
 ax.plot(x, weibull(x, 0.5, 3.5, 0, 0.05), label='threshx=0.5, slope=3.5, guess=0, flake=0.05')
 ax.plot(x, weibull(x, 0.5, 3.5, 0, 0.15), label='threshx=0.5, slope=3.5, guess=0, flake=0.15')
@@ -484,31 +320,15 @@ ax.set_xlim([-0.1, 1.1])
 ax.grid('on')
 fig.set_size_inches([8,8])
 plt.legend(loc='lower right')
-
-
-{% endhighlight %}
-
 	<matplotlib.legend.Legend at 0x107dce6d0>![png]({{ site.url }}/assets/images/2014-08-12-learn-optimization/2014-08-12-learn-optimization_42_1.png)
 As you can see, this function has more parameters, so it can probably account for more different shapes of data.
-
-
-{% highlight python %}
-
-# We guess the inital conditions again: 
+.. code-block:: python# We guess the inital conditions again: 
 initial = 0.5,3.5,0,0
 # fit again with leastsq, this time passing weibull as the input:
 params_ortho, _ = opt.leastsq(err_func, initial, args=(x_ortho, y_ortho, weibull))
 params_para, _ = opt.leastsq(err_func, initial, args=(x_para, y_para, weibull))
 
-
-{% endhighlight %}
-
-
-
-
-{% highlight python %}
-
-fig, ax = plt.subplots(1)
+.. code-block:: pythonfig, ax = plt.subplots(1)
 ax.plot(x, weibull(x, *params_ortho))
 ax.plot(x, weibull(x, *params_para))
 ax.plot(x_ortho, y_ortho, 'bo')
@@ -517,31 +337,15 @@ ax.set_ylim([-0.1, 1.1])
 ax.set_xlim([-0.1, 1.1])
 ax.grid('on')
 fig.set_size_inches([8,8])
-
-
-{% endhighlight %}
-
 ![png]({{ site.url }}/assets/images/2014-08-12-learn-optimization/2014-08-12-learn-optimization_45_0.png)
-
-
-{% highlight python %}
-
-SSE_ortho = np.sum((y_ortho - weibull(x_ortho, *params_ortho))**2)
+.. code-block:: pythonSSE_ortho = np.sum((y_ortho - weibull(x_ortho, *params_ortho))**2)
 SSE_para = np.sum((y_para - weibull(x_para, *params_para))**2)
 print(SSE_ortho + SSE_para)
-
-
-{% endhighlight %}
-
 	0.0864875981874
 Wow! This looks great - we've managed to reduce the SSE even more! But maybe this is too good to be true? One thing to worry about is that this model has more parameters. That is, as we noted above, it has more freedom to fit a variety of different sets of data more closely.
 
 To understand this problem, let's consider an extreme case: consider fitting a model which is a polynomial of degree 7 to this data:
-
-
-{% highlight python %}
-
-beta_ortho = np.polyfit(x_ortho, y_ortho, 7)
+.. code-block:: pythonbeta_ortho = np.polyfit(x_ortho, y_ortho, 7)
 beta_para = np.polyfit(x_para, y_para, 7)
 
 fig, ax = plt.subplots(1)
@@ -557,10 +361,6 @@ fig.set_size_inches([8,8])
 SSE_ortho = np.sum((y_ortho - np.polyval(beta_ortho, x_ortho))**2)
 SSE_para = np.sum((y_para - np.polyval(beta_para, x_para))**2)
 print(SSE_ortho + SSE_para)
-
-
-{% endhighlight %}
-
 	0.0393895514125
 ![png]({{ site.url }}/assets/images/2014-08-12-learn-optimization/2014-08-12-learn-optimization_48_1.png)
 As you can see, the SSE is even lower, but the parameters are adjusted to fit not only the underlying trends in the data, but also the idiosyncratic characteristics of the noise in this sample, to the point where you might reach some absurd conclusions fitting this data (for example, note the deflections of the model around a contrast of 0.8) 
@@ -580,11 +380,7 @@ There are two general ways of doing this:
 
 
 
-
-
-{% highlight python %}
-
-# Split the data into testing and training sets:
+.. code-block:: python# Split the data into testing and training sets:
 x_ortho_1 = x_ortho[1::2]
 y_ortho_1 = y_ortho[1::2]
 x_ortho_2 = x_ortho[::2]
@@ -595,15 +391,7 @@ y_para_1 = y_para[1::2]
 x_para_2 = x_para[::2]
 y_para_2 = y_para[::2]
 
-
-{% endhighlight %}
-
-
-
-
-{% highlight python %}
-
-initial = 0,0.5
+.. code-block:: pythoninitial = 0,0.5
 # Fit to the training data
 params_ortho_1, _ = opt.leastsq(err_func, initial, args=(x_ortho_1, y_ortho_1, cumgauss))
 params_para_1, _ = opt.leastsq(err_func, initial, args=(x_para_1, y_para_1, cumgauss))
@@ -635,10 +423,6 @@ SSE_weibull += (np.sum((y_ortho_1 - weibull(x_ortho_1, *params_ortho_2))**2) +
 
 
 print("For the Weibull SSE=%s"%SSE_weibull)
-
-
-{% endhighlight %}
-
 	For the cumulative Gaussian SSE=0.255651125042
 For the Weibull SSE=0.288565594471
 Note that the SSE we calculated are evaluated each time on a completely separate, non-overlapping set of data. This means that over-fitting could no longer occur, no matter how many parameters you fit. Therefore, this approach does not require counting of the number of parameters. In this case, the cumulative Gaussian seems to perform marginally better than the Weibull function, even though the Weibull has more parameters.
