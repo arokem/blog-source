@@ -1,0 +1,3 @@
+[submodule "pelican-elegant"]
+	path = pelican-elegant
+	url = https://github.com/arokem/pelican-elegant.git
