@@ -6,8 +6,6 @@ import time
 import IPython.nbformat.current as nbformat
 import IPython.nbconvert as nbconvert
 
-start_py_high = '.. code-block:: python'
-
 def add_newline(this_str):
     """ 
     Some kinda boilerplate
@@ -36,8 +34,7 @@ class CustomMarkdownExporter(nbconvert.MarkdownExporter):
     def from_file(self, f):
         """
         
-        """
-        
+        """        
         self._converted = super(CustomMarkdownExporter, self).from_file(f)
         f.seek(0)
         # This gives me the png graphics 
@@ -64,7 +61,6 @@ class CustomMarkdownExporter(nbconvert.MarkdownExporter):
     
     def convert_code(self, to_convert):
         markdown = ''
-        markdown += start_py_high
         markdown += add_newline(to_convert)
         return markdown 
     
@@ -84,11 +80,11 @@ class CustomMarkdownExporter(nbconvert.MarkdownExporter):
                     markdown += '\t' + output['text']
             elif output['output_type'] == 'display_data':
                 markdown += add_newline(
-            '![png]({{ site.url }}/assets/images/%s/%s_%s_%s.png)\n'%(
-                                                                self.basename,
-                                                                self.basename,
-                                                                prompt_number,
-                                                                display_counter))
+            '![png](/images/%s/%s_%s_%s.png)\n'%(
+                self.basename,
+                self.basename,
+                prompt_number,
+                display_counter))
         return markdown
     
     def convert_text(self, txt):
@@ -149,7 +145,7 @@ if __name__ == "__main__":
             CMD.write_pngs(image_dir)
             CMD.convert()
             CMD.add_preamble(CMD.title)
-            ps = '[Download this notebook]({{ site.url }}/ipynb/%s)'%(
+            ps = '[Download this notebook](/ipynb/%s)'%(
                 op.basename(f))
             CMD.add_postscript(ps)
             CMD.save_markdown('content/%s.md'%(basename))

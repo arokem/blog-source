@@ -1,3 +1,9 @@
 [submodule "pelican-elegant"]
 	path = pelican-elegant
 	url = https://github.com/arokem/pelican-elegant.git
+[submodule "pelican-plugins"]
+	path = pelican-plugins
+	url = https://github.com/getpelican/pelican-plugins.git
+[submodule "extra-pelican-plugins/pelican-ipynb"]
+	path = extra-pelican-plugins/pelican-ipynb
+	url = https://github.com/arokem/pelican-ipynb.git
