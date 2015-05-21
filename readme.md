@@ -1,8 +1,8 @@
 ### This is the source of my blog entries. 
 
-If you want to see the blog itself, go to https://arokem.github.io
+If you want to see the blog itself, go to [https://arokem.github.io](https://arokem.github.io)
 
-The content of the blog is written using the (IPython)[http://ipython] notebook (all stored in the `content` directory and its sub-directories for `data` and `images` where those are needed), and the pages are generated using (Pelican)[getpelican.com]. Pelican is a Python-based static web-page generator, that has many (themes)[https://github.com/getpelican/pelican-themes] to choose from and many (plugins)[https://github.com/getpelican/pelican-plugins], to control the flexible generation of web-pages. In particular, to render the notebook into web pages, I also use the (pelican-ipynb)[https://github.com/danielfrg/pelican-ipynb] plugin.
+The content of the blog is written using the [IPython](http://ipython) notebook (all stored in the `content` directory and its sub-directories for `data` and `images` where those are needed), and the pages are generated using (Pelican)[getpelican.com]. Pelican is a Python-based static web-page generator, that has many [themes](https://github.com/getpelican/pelican-themes) to choose from and many [plugins](https://github.com/getpelican/pelican-plugins), to control the flexible generation of web-pages. In particular, to render the notebook into web pages, I also use the [pelican-ipynb](https://github.com/danielfrg/pelican-ipynb) plugin.
 
 
 ### Publishing the blog
