@@ -12,6 +12,7 @@ To deploy the blog to the web execute the following steps, in order. Don't hesit
 
 	cd output
 	git init
+	touch .nojekyll
 	git add *
 	git remote add origin https://github.com/arokem/arokem.github.io
 	git commit -a -m"Publish"
