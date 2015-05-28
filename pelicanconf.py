@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 
 AUTHOR = 'Ariel Rokem'
 SITENAME = 'Ariel Rokem'
-SITEURL = ''
+SITEURL = 'http://arokem.github.io'
 
 PATH = 'content'
 
@@ -35,3 +35,5 @@ THEME = 'pelican-elegant/'
 
 PLUGINS = ['pelican-plugins.pelican-ipynb']
 MARKUP = ('md', 'ipynb')
+
+DISQUS_SITENAME="arokemgithubio"
